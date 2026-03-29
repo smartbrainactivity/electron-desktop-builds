@@ -81,6 +81,29 @@ Most developers don't have code signing certificates. The standard workflow is:
 
 See [electron-common-errors.md](references/electron-common-errors.md) errors #6 and #7.
 
+## Critical Knowledge: Windows Icon Cache
+
+After updating the icon in the .exe, Windows may still show the **old icon** in shortcuts, taskbar, and desktop. This is because Windows caches icons aggressively. Deleting and recreating shortcuts is NOT enough.
+
+**Always run this after installing a new build with a changed icon:**
+
+```powershell
+# 1. Delete icon cache files
+$cachePath = "$env:LOCALAPPDATA\Microsoft\Windows\Explorer"
+Get-ChildItem $cachePath -Filter 'iconcache*' | Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem $cachePath -Filter 'thumbcache*' | Remove-Item -Force -ErrorAction SilentlyContinue
+
+# 2. Force refresh
+ie4uinit.exe -show
+
+# 3. Restart Explorer (desktop disappears briefly)
+Stop-Process -Name explorer -Force; Start-Sleep 2; Start-Process explorer.exe
+```
+
+After restarting Explorer, delete old shortcuts and create new ones from the installed .exe.
+
+See [electron-icon-generation.md](references/electron-icon-generation.md) "Windows Icon Cache Fix" section.
+
 ## References
 
 For detailed checklists, consult:
