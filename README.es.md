@@ -70,6 +70,52 @@ Este skill convierte a tu asistente de IA en un **experto en builds de Electron*
 | **[audit-scan.js](./scripts/audit-scan.js)** | Escaner de seguridad estatico — verifica que no haya patrones maliciosos |
 | **[verify-icons.js](./scripts/verify-icons.js)** | Validador de formato de iconos — detecta JPEG-como-PNG, comprueba dimensiones, avisa sobre config |
 
+## Prompt Pre-Build (Opcional)
+
+Antes de hacer el build del instalador, pega este prompt en tu asistente de IA. Verificara tu proyecto automaticamente, pedira lo que falte y corregira problemas antes de compilar:
+
+<details>
+<summary><strong>Haz clic para ver el prompt completo</strong></summary>
+
+```
+Ejecuta un chequeo pre-build de mi app Electron antes de construir el instalador.
+
+Para cada paso, ejecuta la comprobacion automaticamente. Si algo falla, PARA y arreglalo
+antes de continuar. Si necesitas informacion, PREGUNTAME antes de seguir.
+
+1. VERSIONES — Lee la version de package.json, la constante APP_VERSION del main de electron,
+   y cualquier version hardcodeada en el frontend (footer, dialogo about). Confirma que coincidan.
+   Busca: grep -r "v1\.0\.0" client/src/
+
+2. FORMATO DEL ICONO — Ejecuta: file assets/icon.png (o donde este configurado en el build).
+   Si dice "JPEG image data" en vez de "PNG image data", conviertelo a PNG real.
+   Comprueba que el icono sea al menos 256x256. Busca referencias a iconos antiguos (avatar.png)
+   en los componentes React.
+
+3. CODIGO DEBUG — Busca openDevTools en el main de electron. Solo debe ejecutarse cuando isDev
+   es true. Busca console.log de debug y listeners de debug (did-fail-load, console-message).
+   Comprueba que <base href="./"> no este duplicado en index.html.
+
+4. CONFIG DEL BUILD — Verifica que build.files incluya todos los directorios necesarios.
+   Si signAndEditExecutable: false, confirma que el paso de rcedit esta planificado.
+   Si npmRebuild: false, confirma que no se necesitan modulos nativos.
+   Comprueba que la ruta de instalacion en installer.nsh sea correcta.
+
+5. INFORME — Genera una tabla resumen con OK/FALLO para cada comprobacion.
+   Si todo pasa, dame los comandos exactos de build (incluyendo rcedit si es necesario).
+   Si algo falla, arreglalo primero y muestra el informe actualizado.
+```
+
+</details>
+
+Despues del build, puedes verificar el resultado con:
+
+```
+Verifica mi build de Electron: extrae el icono del .exe y confirma que es mi icono
+(no el icono por defecto de Electron). Si esta mal, arreglalo con rcedit y reconstruye
+el instalador NSIS.
+```
+
 ## Cobertura
 
 - **Herramientas de Build**: electron-builder, electron-forge, electron-packager
