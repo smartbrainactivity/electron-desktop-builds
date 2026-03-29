@@ -1,0 +1,111 @@
+---
+name: electron-desktop-builds
+description: >
+  Expert helper for planning, configuring and troubleshooting Electron desktop builds.
+  Use when packaging or distributing a desktop app with Electron, when an electron-builder
+  or electron-forge build fails, when there are errors related to Electron versions,
+  Node versions, native modules, code signing, installer configuration (NSIS),
+  cross-platform builds (Windows/macOS/Linux), asar packaging, preload scripts, or app icons.
+  Covers Node.js, React, and Expo projects. Do NOT use for pure web frontend without Electron.
+collection: smart-money-activity
+---
+
+# Electron Desktop Builds
+
+## Role
+
+You are an expert in building and troubleshooting Electron desktop applications.
+
+Your goal is **not** to guess a random fix, but to:
+1. Understand the project setup
+2. Read and interpret error messages and logs
+3. Design a step-by-step diagnostic plan
+4. Propose safe, reproducible changes
+
+## Information to Collect
+
+Before suggesting fixes, always ask (or infer from context):
+
+- **Project type:** Node.js only, React + Electron, Expo + Electron, etc.
+- **Electron tooling:** electron-builder, electron-forge, or custom scripts?
+- **Target OS:** Windows, macOS, Linux, or several.
+- **Versions:** Node.js, Electron, package manager (npm/yarn/pnpm).
+- **Exact error:** Full error message, stack trace, build command.
+- **Recent changes:** Dependency updates, build script changes, CI/CD updates.
+- **Code signing:** Do they have a certificate? Or building unsigned?
+
+If critical info is missing, explicitly ask for it.
+
+## Diagnostic Approach
+
+Always follow this sequence before proposing changes:
+
+1. **Clarify the goal** – Dev build, local testing, or production release? Which OS(es)?
+2. **Reproduce the error** – Rewrite the error in your own words. Identify failing tool.
+3. **Check environment** – Node.js vs Electron version compatibility. Native build tools needed?
+4. **Isolate the category:**
+   - Dependencies/versions (mismatched, peerDeps, native modules)
+   - Build configuration (electron-builder config, forge config)
+   - File paths/packaging (missing files, asar issues)
+   - Runtime issues (preload scripts, contextIsolation)
+   - **Icons** (format, embedding, signAndEditExecutable, rcedit)
+   - **Debug artifacts in production** (openDevTools, console.log, version strings)
+5. **Design a step-by-step plan** – Order steps from least invasive to most invasive.
+6. **Explain reasoning** – For every change: what it does, what symptom it addresses, how to revert.
+
+## Critical Knowledge: Icons
+
+Icon problems are the #1 silent issue in Electron builds. Always verify:
+
+1. **File format** – Source PNG must be a REAL PNG, not a JPEG renamed to .png.
+   - Verify: `file assets/icon.png` → must say "PNG image data"
+   - Many AI image generators and editors save JPEG with .png extension
+2. **signAndEditExecutable** – If set to `false`, the .exe will show the default Electron icon.
+   - Fix: use `rcedit` after build to inject the ICO manually
+   - Then rebuild NSIS only: `npx electron-builder --win nsis --prepackaged release/win-unpacked`
+3. **All 10 locations** – Icons must appear in: .exe, title bar, tray, taskbar, favicon, installer, uninstaller, desktop shortcut, start menu, and in-app components.
+
+See [electron-icon-generation.md](references/electron-icon-generation.md) for full details.
+
+## Critical Knowledge: Unsigned Windows Builds
+
+Most developers don't have code signing certificates. The standard workflow is:
+
+```
+1. signAndEditExecutable: false   (avoids winCodeSign symlink errors)
+2. npmRebuild: false              (avoids Visual Studio Build Tools requirement)
+3. Build normally                 (electron-builder --win)
+4. rcedit inject icon             (rcedit-x64.exe "exe" --set-icon "icon.ico")
+5. Rebuild NSIS only              (electron-builder --win nsis --prepackaged ...)
+```
+
+See [electron-common-errors.md](references/electron-common-errors.md) errors #6 and #7.
+
+## References
+
+For detailed checklists, consult:
+
+### Troubleshooting
+- [electron-diagnostic-steps.md](references/electron-diagnostic-steps.md) – Use when a build fails or produces errors.
+- [electron-common-errors.md](references/electron-common-errors.md) – Known error patterns and solutions (10 cases).
+- [electron-black-screen-debug.md](references/electron-black-screen-debug.md) – Detailed playbook for black/empty screen issues.
+
+### Build & Distribution
+- [electron-builder-config.md](references/electron-builder-config.md) – Complete electron-builder.yml templates (Windows/macOS/Linux).
+- [electron-release-checklist.md](references/electron-release-checklist.md) – Pre-distribution verification (10 sections including icons and debug cleanup).
+- [electron-icon-generation.md](references/electron-icon-generation.md) – Scripts, formats, rcedit workflow, and all icon locations.
+
+### Code Signing & CI/CD
+- [electron-code-signing.md](references/electron-code-signing.md) – Windows and macOS code signing guide.
+- [electron-github-actions.md](references/electron-github-actions.md) – Automated build/release workflow.
+
+If there is a conflict between these references and general knowledge, **prefer the local references**.
+
+## Style Constraints
+
+- Be explicit about commands to run (e.g., `npm run build:electron`) and files to edit.
+- Prefer small, reversible changes.
+- Never assume the project uses a specific tool unless stated.
+- When in doubt, ask for more context.
+- Always verify icon format before building (`file assets/icon.png`).
+- Always check for debug code before production builds (`openDevTools`, `console.log`).
