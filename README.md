@@ -70,6 +70,50 @@ This skill turns your AI assistant into an **Electron build expert** that follow
 | **[audit-scan.js](./scripts/audit-scan.js)** | Static security scanner — verifies no malicious patterns |
 | **[verify-icons.js](./scripts/verify-icons.js)** | Icon format validator — detects JPEG-as-PNG, checks dimensions, warns about config |
 
+## Pre-Build Preflight Prompt (Optional)
+
+Before building your installer, paste this prompt into your AI assistant. It will automatically check your project, ask for anything missing, and fix issues before you build:
+
+<details>
+<summary><strong>Click to expand the full preflight prompt</strong></summary>
+
+```
+Run a pre-build preflight check for my Electron app before I build the installer.
+
+For each step, run the check automatically. If something fails, STOP and fix it before continuing.
+If you need information from me, ASK before proceeding.
+
+1. VERSIONS — Read package.json version, electron main file APP_VERSION constant, and any
+   hardcoded version strings in the frontend (footer, about dialog). Confirm all match.
+   Search: grep -r "v1\.0\.0" client/src/
+
+2. ICON FORMAT — Run: file assets/icon.png (or wherever the icon is in build config).
+   If output says "JPEG image data" instead of "PNG image data", convert it to real PNG.
+   Check icon is at least 256x256. Check if old icon references (avatar.png) remain in components.
+
+3. DEBUG CODE — Search for openDevTools in electron main file. Must ONLY run when isDev is true.
+   Search for console.log debug statements and debug listeners (did-fail-load, console-message).
+   Check <base href="./"> is not duplicated in index.html.
+
+4. BUILD CONFIG — Verify build.files includes all required directories.
+   If signAndEditExecutable: false, confirm rcedit step is planned.
+   If npmRebuild: false, confirm no native modules are needed.
+   Check installer.nsh install path is correct.
+
+5. REPORT — Generate a summary table with OK/FAIL for each check.
+   If all pass, give me the exact build commands (including rcedit if needed).
+   If any fail, fix first, then show the updated report.
+```
+
+</details>
+
+After the build completes, you can verify the output with:
+
+```
+Verify my Electron build: extract the icon from the .exe and confirm it's my app icon
+(not the default Electron icon). If wrong, fix it with rcedit and rebuild the NSIS installer.
+```
+
 ## Coverage
 
 - **Build Tools**: electron-builder, electron-forge, electron-packager
