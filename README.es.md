@@ -65,10 +65,25 @@ Este skill convierte a tu asistente de IA en un **experto en builds de Electron*
 
 ## Scripts
 
-| Script | Descripcion |
-|--------|-------------|
-| **[audit-scan.js](./scripts/audit-scan.js)** | Escaner de seguridad estatico — verifica que no haya patrones maliciosos |
-| **[verify-icons.js](./scripts/verify-icons.js)** | Validador de formato de iconos — detecta JPEG-como-PNG, comprueba dimensiones, avisa sobre config |
+| Script | Tipo | Descripcion |
+|--------|------|-------------|
+| **[audit-scan.js](./scripts/audit-scan.js)** | Diagnostico | Escaner de seguridad estatico — verifica que no haya patrones maliciosos |
+| **[verify-icons.js](./scripts/verify-icons.js)** | Diagnostico | Validador de formato de iconos — detecta JPEG-como-PNG, comprueba dimensiones, avisa sobre config |
+| **[fix-exe-icon.js](./scripts/fix-exe-icon.js)** | Post-build | Inyeccion automatica del icono en el `.exe` cuando `signAndEditExecutable: false`. Usa `rcedit` + reconstruye el instalador NSIS. **Copiar al proyecto y añadir al build chain.** |
+
+### Uso de `fix-exe-icon.js`
+
+Este script soluciona de forma definitiva el problema del icono por defecto de Electron en builds sin firma. Se copia al proyecto y se añade al script de build:
+
+```bash
+# Copiar al proyecto (o a una carpeta compartida entre proyectos)
+cp scripts/fix-exe-icon.js <tu-proyecto>/scripts/fix-exe-icon.js
+
+# Añadir al final del script electron:build en package.json
+"electron:build": "... && electron-builder && node scripts/fix-exe-icon.js"
+```
+
+El script lee todo de `package.json` automaticamente (productName, win.icon, directorio de salida). No tiene rutas hardcodeadas — funciona para cualquier app Electron.
 
 ## Prompt Pre-Build (Opcional)
 

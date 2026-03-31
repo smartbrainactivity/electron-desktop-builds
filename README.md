@@ -65,10 +65,25 @@ This skill turns your AI assistant into an **Electron build expert** that follow
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| **[audit-scan.js](./scripts/audit-scan.js)** | Static security scanner — verifies no malicious patterns |
-| **[verify-icons.js](./scripts/verify-icons.js)** | Icon format validator — detects JPEG-as-PNG, checks dimensions, warns about config |
+| Script | Type | Description |
+|--------|------|-------------|
+| **[audit-scan.js](./scripts/audit-scan.js)** | Diagnostic | Static security scanner — verifies no malicious patterns |
+| **[verify-icons.js](./scripts/verify-icons.js)** | Diagnostic | Icon format validator — detects JPEG-as-PNG, checks dimensions, warns about config |
+| **[fix-exe-icon.js](./scripts/fix-exe-icon.js)** | Post-build | Automatic icon injection into `.exe` when `signAndEditExecutable: false`. Uses `rcedit` + rebuilds NSIS installer. **Copy to project and add to build chain.** |
+
+### Using `fix-exe-icon.js`
+
+This script permanently fixes the default Electron icon issue on unsigned Windows builds. Copy it to your project and add it to your build script:
+
+```bash
+# Copy to your project (or a shared scripts folder)
+cp scripts/fix-exe-icon.js <your-project>/scripts/fix-exe-icon.js
+
+# Append to electron:build in package.json
+"electron:build": "... && electron-builder && node scripts/fix-exe-icon.js"
+```
+
+The script reads everything from `package.json` automatically (productName, win.icon, output directory). No hardcoded paths — works for any Electron app.
 
 ## Pre-Build Preflight Prompt (Optional)
 

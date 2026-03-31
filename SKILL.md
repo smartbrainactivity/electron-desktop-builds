@@ -79,6 +79,26 @@ Most developers don't have code signing certificates. The standard workflow is:
 5. Rebuild NSIS only              (electron-builder --win nsis --prepackaged ...)
 ```
 
+### Automated icon fix: `fix-exe-icon.js`
+
+This skill includes a **ready-to-use script** that automates steps 4-5 above. Instead of running rcedit manually, copy the script and add it to the build chain:
+
+```bash
+# Copy from skill to the project (or a shared scripts folder)
+cp "<skill-path>/scripts/fix-exe-icon.js" ./scripts/fix-exe-icon.js
+
+# Add to package.json electron:build script
+"electron:build": "... && electron-builder && node scripts/fix-exe-icon.js"
+```
+
+The script is at [scripts/fix-exe-icon.js](scripts/fix-exe-icon.js). It:
+1. Reads `package.json` automatically (productName, win.icon, output dir)
+2. Finds `rcedit-x64.exe` in electron-builder cache
+3. Injects the `.ico` into the unpacked `.exe`
+4. Rebuilds only the NSIS installer with the patched exe
+
+**No hardcoded paths** — works for any Electron app. Just needs `signAndEditExecutable: false` and a valid `.ico` (or electron-builder's auto-generated one in `release/.icon-ico/`).
+
 See [electron-common-errors.md](references/electron-common-errors.md) errors #6 and #7.
 
 ## Critical Knowledge: Windows Icon Cache
@@ -117,6 +137,10 @@ For detailed checklists, consult:
 - [electron-builder-config.md](references/electron-builder-config.md) – Complete electron-builder.yml templates (Windows/macOS/Linux).
 - [electron-release-checklist.md](references/electron-release-checklist.md) – Pre-distribution verification (10 sections including icons and debug cleanup).
 - [electron-icon-generation.md](references/electron-icon-generation.md) – Scripts, formats, rcedit workflow, and all icon locations.
+
+### Executable Scripts (copy to project)
+- [fix-exe-icon.js](scripts/fix-exe-icon.js) – Post-build icon injection for unsigned Windows builds. Automates rcedit + NSIS rebuild.
+- [verify-icons.js](scripts/verify-icons.js) – Pre-build icon verification (format, size, config check).
 
 ### Code Signing & CI/CD
 - [electron-code-signing.md](references/electron-code-signing.md) – Windows and macOS code signing guide.
